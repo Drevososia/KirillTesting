@@ -18,5 +18,5 @@ function triggerFileDownload(fileName, url) {
     }
 
     anchorElement.click();
-    anchorElement.remove();
+    anchorElement.remove();;
 }
