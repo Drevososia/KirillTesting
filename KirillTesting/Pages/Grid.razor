@@ -1,0 +1,130 @@
+﻿@page "/"
+
+@using KirillTesting.Models;
+@using KirillTesting.Models.Contexts;
+@using KirillTesting.Models.Sprs;
+@using KirillTesting.Repositories;
+@using KirillTesting.Repositories.Interfaces;
+
+@inject IStringLocalizer<Grid> L
+
+<div style="margin: 0 auto;">
+    <h2>Тестовое Кирилл Терехов</h2>
+    <KirillTesting.Components.MessageBox @ref="_messageBox"/>
+    <KirillTesting.Components.UploadModal PopupVisible="@_uploadVisible" VisibleChangedAction="@(async v => await OnUploadVisibleChangedAsync(v))" />
+    @if (_people == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <button type="button" class="btn btn-primary btn-sm" @onclick="@OnDownloadClick">
+            <span class="bi bi-cloud-download"></span>
+            Выгрузить
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" @onclick="@OnUploadClick">
+            <span class="bi bi-cloud-upload"></span>
+            Загрузить
+        </button>
+        <DxGrid Data="@_people"
+            CssClass="mw-1100"
+            ShowGroupPanel="true"
+            ShowFilterRow="true"
+            PagerNavigationMode="PagerNavigationMode.InputBox"
+            PageSizeSelectorVisible="true"
+            PageSizeSelectorAllRowsItemVisible="true"
+            PageSizeSelectorItems="@(new int[] { 5,10,20 })"
+            KeyFieldName="@nameof(Person.Id)"
+            ValidationEnabled="true"
+            CustomizeEditModel="Grid_CustomizeEditModel"
+            EditModelSaving="Grid_EditModelSaving"
+            DataItemDeleting="Grid_DataItemDeleting"
+            PopupEditFormCssClass="pw-800"
+            EditMode="@GridEditMode.PopupEditForm"
+            @bind-SelectedDataItems="@_selectedDataItems">
+            <Columns>
+                <DxGridSelectionColumn Width="104px" />
+                <DxGridCommandColumn Width="160px" />
+                <DxGridDataColumn FieldName="@nameof(Person.Firstname)" Caption="Имя" DisplayFormat="D" />
+                <DxGridDataColumn FieldName="@nameof(Person.Lastname)" Caption="Фамилия" />
+                <DxGridDataColumn FieldName="@nameof(Person.Patronymic)" Caption="Отчество" />
+                <DxGridDataColumn FieldName="@nameof(Person.Age)" Caption="Возраст" />
+                <DxGridDataColumn FieldName="@nameof(Person.Gender)" Caption="Пол" Width="220px" TextAlignment="GridTextAlignment.Left" SortMode="GridColumnSortMode.DisplayText">
+                    <FilterRowCellTemplate>
+                        <DxComboBox Value="(int?)context.FilterRowValue"
+                                ValueChanged="(int? v) => context.FilterRowValue = v"
+                                Data="@_genders" ValueFieldName="Id" TextFieldName="Name"
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                    </FilterRowCellTemplate>
+                    <CellDisplayTemplate>
+                        <div>@_genders.FirstOrDefault(x => x.Id == (int?)context.Value)?.Name</div>
+                    </CellDisplayTemplate>
+                </DxGridDataColumn>
+                <DxGridDataColumn FieldName="@nameof(Person.DateOfBirth)" Caption="Дата рождения" Width="120px" MinWidth="120">
+                    <FilterRowCellTemplate>
+                        <DxDateEdit Date="(DateTime?)context.FilterRowValue"
+                                DateChanged="(DateTime? v) => context.FilterRowValue = v"
+                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Never" />
+                    </FilterRowCellTemplate>
+                </DxGridDataColumn>
+            </Columns>
+            <EditFormTemplate Context="EditFormContext">
+                @{
+                    var person = (Person)EditFormContext.EditModel;
+                    var policy = person.Policy ??= new Policy();
+                }
+                <DxFormLayout CssClass="w-100" CaptionPosition="@CaptionPosition.Vertical">
+                    <DxFormLayoutItem Caption="Фамилия:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@person.Lastname" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Имя:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@person.Firstname" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Отчество:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@person.Patronymic" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Пол:" ColSpanMd="6">
+                        <DxComboBox Data="@_genders"
+                                NullText="..."
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                TextFieldName="Name"
+                                ValueFieldName="Id"
+                                @bind-Value="@person.Gender" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Дата рождения:" ColSpanMd="6">
+                        <DxDateEdit @bind-Date="@person.DateOfBirth" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Возраст:" ColSpanMd="6">
+                        <DxSpinEdit @bind-Value="@person.Age" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Тип полиса:" ColSpanMd="6">
+                        <DxComboBox Data="@_policyTypes"
+                                NullText="..."
+                                FilteringMode="DataGridFilteringMode.Contains"
+                                TextFieldName="Name"
+                                ValueFieldName="Id"
+                                @bind-Value="@policy.Type" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="ЕНП:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@policy.Enp" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Номер полиса:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@policy.Number" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Серия полиса:" ColSpanMd="6">
+                        <DxTextBox @bind-Text="@policy.Serial" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem ColSpanMd="12">
+                        <ValidationSummary />
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </EditFormTemplate>
+        </DxGrid>
+    }
+</div>
+
+
+@code {
+   
+}

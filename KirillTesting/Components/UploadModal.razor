@@ -1,0 +1,69 @@
+﻿
+<DxPopup Id="overviewDemoDropZone"
+    HeaderText="Загрузка"
+         Visible="@PopupVisible"
+         VisibleChanged="@OnVisibleChanged">
+    <div class="upload-container">
+        <div style="text-align: center; @(SelectedFilesCount > 0 ? "display: none; " : string.Empty)">
+            <span class="drop-file-icon mb-3"></span>
+            <span style=""
+                class="mb-3">Нажмите кнопку «Выбрать файлы», чтобы выбрать файл
+            </span>
+            <button id="overviewDemoSelectButton" class="btn border-primary btn-primary m-1" style="margin-top: 15px !important;">Выбрать файлы</button>
+        </div>
+        <DxUpload Name="myFile"
+                    ExternalSelectButtonCssSelector="#overviewDemoSelectButton"
+                  ExternalDropZoneCssSelector="#overviewDemoDropZone"
+                  ExternalDropZoneDragOverCssClass="bg-light border-secondary text-dark"
+                  FileUploaded="@(async e => await OnFileUploadedAsync(e))"
+                    AllowMultiFileUpload="true"
+                    MaxFileSize="4000000"
+                    UploadMode="@UploadMode.OnButtonClick"
+                    UploadUrl="@GetUploadUrl("api/Upload/Upload/")"
+                    AllowedFileExtensions="@(new List<string> { ".xml" })"
+                    SelectedFilesChanged="@SelectedFilesChanged"
+                    CssClass="@(SelectedFilesCount > 0 ? "w-100" : string.Empty)"
+                    >
+        </DxUpload>
+    </div>
+   
+</DxPopup>
+
+
+@code {
+
+
+    [Inject]
+    NavigationManager NavigationManager{ get; set; }
+    [Parameter]
+    public Action<bool> VisibleChangedAction{ get; set; }
+    [Parameter]
+    public bool PopupVisible{ get; set; }
+
+    int SelectedFilesCount { get; set; }
+    protected void SelectedFilesChanged(IEnumerable<UploadFileInfo> files) {
+        SelectedFilesCount = files.ToList().Count;
+        InvokeAsync(StateHasChanged);
+    }
+    protected string GetUploadUrl(string url)
+    {
+        return NavigationManager.ToAbsoluteUri(url).AbsoluteUri;
+    }
+
+    private void OnVisibleChanged(bool v)
+    {
+        PopupVisible = v;
+        VisibleChangedAction.Invoke(v);
+        SelectedFilesCount = 0;
+        StateHasChanged();
+    }
+
+    private async Task OnFileUploadedAsync(FileUploadEventArgs e)
+    {
+        await Task.Delay(700);
+        PopupVisible = false;
+        VisibleChangedAction.Invoke(false);
+        SelectedFilesCount = 0;
+        StateHasChanged();
+    }
+}

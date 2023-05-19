@@ -1,0 +1,21 @@
+﻿<DxPopup Id="overviewDemoDropZone"
+    HeaderText="Уведомление"
+    Width="400px"
+    CssClass="message-box"
+         @bind-Visible="@_visible"
+            BodyText="@_message"
+            >
+            
+         </DxPopup>
+
+@code {
+    private bool _visible = false;
+    private string _message = string.Empty;
+
+    public void Show(string message)
+    {
+        _message = message;
+        _visible = true;
+        StateHasChanged();
+    }
+}
